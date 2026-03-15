@@ -5,8 +5,11 @@ from data_base.auth import get_student_id_from_request
 
 def get_student_context(request):
     student_id = get_student_id_from_request(request)
+    print(f"DEBUG student_id: {student_id}")
     name = get_student_name(student_id)
+    print(f"DEBUG name: {name}")
     courses = get_student_courses(student_id)
+    print(f"DEBUG courses: {courses}")
     return {
         "student_id": student_id,
         "name": name,

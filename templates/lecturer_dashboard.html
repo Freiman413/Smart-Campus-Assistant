@@ -119,6 +119,10 @@
         <h2 class="lec-panel__title">Student Access</h2>
         <p class="lec-panel__desc">first_name · last_name · email · course_id</p>
       </div>
+      <button class="lec-btn lec-btn--primary" id="add-student-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Student
+      </button>
     </div>
     <div class="lec-table-wrap">
       <table class="lec-table">
@@ -227,6 +231,25 @@
   <div class="lec-modal__footer">
     <button class="lec-btn lec-btn--ghost" data-close-modal>Cancel</button>
     <button class="lec-btn lec-btn--primary" id="save-grade-btn">Save Grade</button>
+  </div>
+</div>
+
+<div class="lec-modal" id="modal-student" role="dialog" aria-modal="true">
+  <div class="lec-modal__header">
+    <h3 class="lec-modal__title">Add Student</h3>
+    <button class="lec-modal__close" data-close-modal aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="lec-modal__body">
+    <div class="lec-field-row">
+      <div class="lec-field"><label class="lec-label">first_name</label><input class="lec-input" id="student-first-name" type="text" placeholder="Ron" /></div>
+      <div class="lec-field"><label class="lec-label">last_name</label><input class="lec-input" id="student-last-name" type="text" placeholder="Levi" /></div>
+    </div>
+    <div class="lec-field"><label class="lec-label">email</label><input class="lec-input" id="student-email" type="email" placeholder="ron@student.ac.il" /></div>
+    <div id="student-error" class="modal-error" style="display:none"></div>
+  </div>
+  <div class="lec-modal__footer">
+    <button class="lec-btn lec-btn--ghost" data-close-modal>Cancel</button>
+    <button class="lec-btn lec-btn--primary" id="save-student-btn">Add Student</button>
   </div>
 </div>
 
@@ -376,7 +399,6 @@
       '</button>';
   }
 
-  /* Tabs Navigation */
   document.querySelectorAll('.lec-tab').forEach(function (tab) {
     tab.addEventListener('click', function () {
       document.querySelectorAll('.lec-tab').forEach(function (t) { t.classList.remove('is-active'); t.setAttribute('aria-selected','false'); });
@@ -387,7 +409,6 @@
     });
   });
 
-  /* Modals */
   var backdrop = document.getElementById('lec-modal-backdrop');
   function openModal(id) { document.getElementById(id).classList.add('is-visible'); backdrop.classList.add('is-visible'); }
   function closeAll() {
@@ -398,7 +419,6 @@
   document.querySelectorAll('[data-close-modal]').forEach(function (b) { b.addEventListener('click', closeAll); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(); });
 
-  /* API Helpers */
   function apiFetch(method, url, body, onSuccess, onError) {
     setSaving(true);
     var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
@@ -425,7 +445,6 @@
       .catch(function () { setSaving(false); onError('Network error.'); });
   }
 
-  /* Lessons */
   function renderLessons(rows) {
     var tbody = document.getElementById('lessons-tbody');
     var empty = document.getElementById('lessons-empty');
@@ -469,7 +488,6 @@
        function (err) { showError('lesson-error', err); });
   });
 
-  /* Exams */
   function renderExams(rows) {
     var tbody = document.getElementById('exams-tbody');
     var empty = document.getElementById('exams-empty');
@@ -529,7 +547,6 @@
        function (err) { showError('exam-error', err); });
   });
 
-  /* Grades */
   function gradeStatus(g) {
     if (g === null || g === undefined || g === '')
       return '<span class="grade-status grade-status--pending">Pending</span>';
@@ -592,7 +609,6 @@
        function (err) { showError('grade-error', err); });
   });
 
-  /* Students (View Only) */
   function renderStudents(rows) {
     studentsCache = rows;
     var tbody = document.getElementById('students-tbody');
@@ -615,7 +631,24 @@
     fetch('/api/students').then(function (r) { return r.json(); }).then(renderStudents).catch(function () {});
   }
 
-  /* Office Hours */
+  document.getElementById('add-student-btn').addEventListener('click', function () {
+    ['student-first-name','student-last-name','student-email'].forEach(function (id) { document.getElementById(id).value = ''; });
+    hideError('student-error');
+    openModal('modal-student');
+  });
+
+  document.getElementById('save-student-btn').addEventListener('click', function () {
+    var emailEl = document.getElementById('student-email');
+    if (!emailEl.value.trim()) { shake(emailEl); return; }
+    hideError('student-error');
+    apiFetch('POST', '/api/students', {
+      first_name: getVal('student-first-name'),
+      last_name:  getVal('student-last-name'),
+      email:      getVal('student-email')
+    }, function () { loadStudents(); closeAll(); },
+       function (err) { showError('student-error', err); });
+  });
+
   function renderOfficeHours(rows) {
     var tbody = document.getElementById('oh-tbody');
     var empty = document.getElementById('oh-empty');
@@ -656,7 +689,6 @@
        function (err) { showError('oh-error', err); });
   });
 
-  /* Delete Handlers */
   function attachDeleteHandlers() {
     document.querySelectorAll('[data-endpoint]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -675,7 +707,6 @@
     });
   }
 
-  /* Init */
   loadLessons();
   loadExams();
   loadGrades();

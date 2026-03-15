@@ -195,7 +195,6 @@ async def chat(request: Request):
             }
 
         classifier_result = call_classifier(last_message)
-        print(f"CLASSIFIER: {classifier_result}")
 
         edge_message = check_edge_case(
             classifier_result["edge_case"],

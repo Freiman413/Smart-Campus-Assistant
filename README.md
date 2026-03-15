@@ -22,7 +22,7 @@ project/
 ├── README.md
 │
 ├── ai_server/
-│   ├── __init__.py
+│   ├
 │   ├── main_server.py
 │   ├── utils_ai_server.py
 │   ├── test_main.py
@@ -41,7 +41,7 @@ project/
 │   └── validators.py
 │
 ├── router/
-│   ├── __init__.py
+│   ├
 │   ├── pages.py
 │   ├── admin.py
 │   └── lecturer_dashboard.py

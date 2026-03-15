@@ -6,7 +6,7 @@ load_dotenv()
 from fastapi.responses import JSONResponse
 from jose import jwt, JWTError
 import sqlite3
-
+from data_base.auth import get_current_lecturer
 from data_base.db import get_db_path
 from data_base.crud import (create_lesson, delete_lesson, create_exam, delete_exam, create_grade, update_grade, delete_grade, create_student, create_office_hour, delete_office_hour)
 from data_base.query import get_lessons, get_exams, get_grades, get_students, get_office_hours
@@ -35,6 +35,7 @@ def get_current_course(request: Request):
     if not row:
         raise ValueError("No course found for this lecturer")
     return row["course_id"]
+
 
 def auth_error(e: Exception):
     return JSONResponse(status_code=401, content={"error": str(e)})

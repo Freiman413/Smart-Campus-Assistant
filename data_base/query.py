@@ -52,9 +52,7 @@ def get_grades(course_id: int):
     return [dict(r) for r in rows]
 
 def get_office_hours(lecturer_id: int):
-    with sqlite3.connect(get_db_path()) as conn:
-        conn.row_factory = sqlite3.Row
-        cur = conn.execute("SELECT office_hour_id, date, hour, location FROM Office_Hours WHERE lecturer_id = ?",(lecturer_id,))
-        return cur.fetchall()
-    
+    with get_db() as conn:
+        rows = conn.execute("SELECT office_hour_id, date, hour, location FROM Office_Hours WHERE lecturer_id = ?",(lecturer_id,)).fetchall()
+    return [dict(r) for r in rows]
 

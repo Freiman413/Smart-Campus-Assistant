@@ -45,3 +45,15 @@ def validate_passwords_match(password: str, confirm: str):
     if password != confirm:
         raise ValueError("Passwords do not match.")
     return password
+
+
+def validate_office_hour(hour: str):
+    parts = hour.strip().split(":")
+    if len(parts) != 2:
+        raise ValueError("Hour must be in HH:MM format.")
+    h, m = int(parts[0]), int(parts[1])
+    if h < 8 or h > 20:
+        raise ValueError("Hour must be between 08:00 and 20:00.")
+    if m % 20 != 0:
+        raise ValueError("Minutes must be 00, 20, or 40.")
+    return hour.strip()

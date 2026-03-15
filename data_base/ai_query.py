@@ -23,7 +23,6 @@ def get_student_courses(student_id: int):
         raise ValueError("you has no active courses.")
     return [dict(r) for r in rows]
 
-
 def get_exams_by_course(course_id: int) -> list:
     with get_db() as conn:
         rows = conn.execute("SELECT * FROM Exams WHERE course_id = ?",(course_id,)).fetchall()

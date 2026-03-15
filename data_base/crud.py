@@ -1,6 +1,6 @@
 import sqlite3
 from .db import get_db_path
-from .validators import validate_name, validate_email, validate_future_date, validate_hour
+from .validators import validate_name, validate_email, validate_future_date, validate_hour, validate_office_hour
 
 def get_db():
     conn = sqlite3.connect(get_db_path())
@@ -45,12 +45,17 @@ def create_lesson(course_id: int, date: str, hour: str, building_number: int, ro
 
 def delete_lesson(lesson_id: int, course_id: int) -> bool:
     with sqlite3.connect(get_db_path()) as conn:
-        conn.execute("DELETE FROM Lessons WHERE lesson_id = ?", (lesson_id,))
+        cur = conn.execute("DELETE FROM Lessons WHERE lesson_id = ?", (lesson_id,))
+        if cur == 0:
+            raise ValueError("lesson not found.")
         conn.commit()
     return True
 
 def delete_exam(exam_id: int, course_id: int):
     with sqlite3.connect(get_db_path()) as conn:
+        row = conn.execute("SELECT exam_id FROM Exams WHERE exam_id = ?", (exam_id,)).fetchone()
+        if not row:
+            raise ValueError("Exam not found.")
         conn.execute("DELETE FROM Grades WHERE exam_id = ?", (exam_id,))
         conn.execute("DELETE FROM Exams WHERE exam_id = ?", (exam_id,))
         conn.commit()
@@ -110,6 +115,8 @@ def update_grade(grade_id: int, grade_received: int, course_id: int):
         raise ValueError("Grade must be between 0 and 100.")
     with get_db() as conn:
         cur = conn.execute("UPDATE Grades SET grade_received = ? WHERE grade_id = ? AND exam_id IN (SELECT exam_id FROM Exams WHERE course_id = ?)",(grade_received, grade_id, course_id)).rowcount
+        if cur == 0:
+            raise ValueError("Grade not found.")
         conn.commit()
     return cur> 0
 
@@ -149,16 +156,20 @@ def create_lecturer_with_course(first_name: str, last_name: str, email: str, pas
 
 def delete_grade(grade_id: int, course_id: int):
     with sqlite3.connect(get_db_path()) as conn:
-        conn.execute("DELETE FROM Grades WHERE grade_id = ?", (grade_id,))
+        cur = conn.execute("DELETE FROM Grades WHERE grade_id = ?", (grade_id,))
+        if cur.rowcount == 0:
+            raise ValueError("Grade not found.")
         conn.commit()
     return True
 
 def create_office_hour(lecturer_id: int, date: str, hour: str, location: str):
+    date = validate_future_date(date)
+    hour = validate_office_hour(hour)
     with get_db() as conn:
-        conn.row_factory = sqlite3.Row
-        cur = conn.execute("INSERT INTO Office_Hours (lecturer_id, date, hour, location) VALUES (?, ?, ?, ?) RETURNING office_hour_id, date, hour, location",(lecturer_id, date, hour, location))
+        cur = conn.execute("INSERT INTO Office_Hours (lecturer_id, date, hour, location) VALUES (?, ?, ?, ?)",(lecturer_id, date, hour, location))
         conn.commit()
-        return cur.fetchone()
+        row = conn.execute("SELECT office_hour_id, date, hour, location FROM Office_Hours WHERE office_hour_id = ?",(cur.lastrowid,)).fetchone()
+    return dict(row)
 
 def delete_office_hour(office_hour_id: int):
     with get_db() as conn:
